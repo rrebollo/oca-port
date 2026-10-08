@@ -124,8 +124,9 @@ class App(Output):
                 f"(object filter): scanning commits may download data from "
                 "the network and take a very long time.\n"
                 f"Consider converting it to a full clone first, e.g.:\n"
-                f"\tgit config --unset-all remote.{remote}.partialclonefilter\n"
-                f"\tgit fetch {remote} --unshallow{bc.END}",
+                f"\tgit config --unset remote.{remote}.promisor\n"
+                f"\tgit config --unset remote.{remote}.partialclonefilter\n"
+                f"\tgit fetch --refetch {remote}{bc.END}",
                 file=sys.stderr,
             )
         # GitHub API helper

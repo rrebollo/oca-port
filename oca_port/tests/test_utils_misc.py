@@ -117,3 +117,20 @@ class TestPromisorRemotes(common.CommonCase):
                 self.source1, self.target1, upstream_org="TEST", output="json"
             )
         self.assertIn("partial clone", mock_stderr.getvalue())
+
+    def test_warning_suggests_refetch_not_unshallow(self):
+        # 'git fetch <remote> --unshallow' fails on a partial clone that is
+        # not shallow ("--unshallow on a complete repository does not make
+        # sense") and leaves remote.<remote>.promisor set, so the warning
+        # would show up again on the next run.
+        repo = self._git_repo(self.repo_path)
+        repo.git.config("--local", "remote.origin.promisor", "true")
+        with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
+            self._create_app(
+                self.source1, self.target1, upstream_org="TEST", output="json"
+            )
+        warning = mock_stderr.getvalue()
+        self.assertIn("git config --unset remote.origin.promisor", warning)
+        self.assertIn("git config --unset remote.origin.partialclonefilter", warning)
+        self.assertIn("git fetch --refetch origin", warning)
+        self.assertNotIn("--unshallow", warning)
